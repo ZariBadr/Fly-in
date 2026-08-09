@@ -58,7 +58,7 @@ class PathFinder:
         self,
         excluded: frozenset[str] = frozenset(),
     ) -> Path | None:
-        """Cheapest route from start to end, avoiding excluded zones."""
+        """Cheapest route from start to end"""
         start, end = self._net.start, self._net.end
         if not start.is_accessible or not end.is_accessible:
             return None
