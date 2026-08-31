@@ -1,9 +1,3 @@
-"""Domain objects for the Fly-in drone routing simulation.
-
-No third-party graph library is used: the network is stored as a plain
-adjacency mapping built by the parser.
-"""
-
 from __future__ import annotations
 
 import sys

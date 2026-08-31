@@ -1,5 +1,3 @@
-"""Weighted pathfinding over the zone network."""
-
 from __future__ import annotations
 
 import heapq
@@ -9,11 +7,11 @@ from models import Network, Zone, ZoneType
 
 
 class NoRouteError(Exception):
-    """Raised when no valid route exists from the start to the end hub."""
+    """Raise when no valid route exist"""
 
 
 class Path:
-    """An ordered list of zones, from the start hub to the end hub."""
+    """ordered list of zones from the start to the end"""
 
     def __init__(self, zones: list[Zone]) -> None:
         """Build a path from an ordered list of zones."""
@@ -21,17 +19,17 @@ class Path:
 
     @property
     def cost(self) -> int:
-        """Turns needed to fly the path alone, ignoring congestion."""
+        """Turns needed to fly the path"""
         return sum(zone.move_cost for zone in self.zones[1:])
 
     @property
     def intermediate(self) -> list[Zone]:
-        """Every zone except the start and end hubs."""
+        """Every zone except the start and end hubs"""
         return self.zones[1:-1]
 
     @property
     def names(self) -> list[str]:
-        """The zone names, in travel order."""
+        """The zone names"""
         return [zone.name for zone in self.zones]
 
     def __len__(self) -> int:
@@ -39,17 +37,15 @@ class Path:
         return len(self.zones)
 
     def __iter__(self) -> Iterator[Zone]:
-        """Iterate over the zones in travel order."""
+        """Iterate over the zones in travel order"""
         return iter(self.zones)
 
     def __repr__(self) -> str:
-        """Return a debug representation."""
+        """Return a debug representation"""
         return f"Path({' -> '.join(self.names)}, cost={self.cost})"
 
 
 class PathFinder:
-    """Compute weighted shortest routes across a Network."""
-
     def __init__(self, network: Network) -> None:
         """Bind the finder to the network it searches."""
         self._net = network
@@ -58,7 +54,7 @@ class PathFinder:
         self,
         excluded: frozenset[str] = frozenset(),
     ) -> Path | None:
-        """Cheapest route from start to end"""
+        """cheapest route from start to end"""
         start, end = self._net.start, self._net.end
         if not start.is_accessible or not end.is_accessible:
             return None
@@ -90,7 +86,7 @@ class PathFinder:
         self,
         excluded: frozenset[str] = frozenset(),
     ) -> Path:
-        """Like shortest, but raise NoRouteError instead of returning None."""
+        """same as shortest but its raising NoRouteError instead of returning None"""
         path = self.shortest(excluded)
         if path is None:
             raise NoRouteError(
@@ -101,11 +97,11 @@ class PathFinder:
 
     @staticmethod
     def _penalty(zone: Zone) -> int:
-        """Tie-breaker cost: zero for priority zones, one otherwise."""
+        """zero for priority zones, one otherwise"""
         return 0 if zone.zone_type is ZoneType.PRIORITY else 1
 
     def disjoint_paths(self) -> list[Path]:
-        """Routes sharing no intermediate zone, cheapest first."""
+        """Routes sharing no intermediate zone, cheapest first"""
         paths: list[Path] = []
         used: set[str] = set()
         seen: set[tuple[str, ...]] = set()
@@ -125,7 +121,7 @@ class PathFinder:
 
     @staticmethod
     def distribute(paths: list[Path], nb_drones: int) -> list[int]:
-        """How many drones to send down each path, in path order."""
+        """num of drones to send down each path in path order"""
         counts = [0] * len(paths)
         for _ in range(nb_drones):
             chosen = min(
@@ -137,7 +133,7 @@ class PathFinder:
 
     @staticmethod
     def estimated_turns(paths: list[Path], counts: list[int]) -> int:
-        """Turns the plan should take if nothing blocks the drones."""
+        """Turns the plan should take if nothing blocks the drones"""
         return max(
             (
                 path.cost + count - 1
@@ -148,7 +144,7 @@ class PathFinder:
         )
 
     def plan(self) -> list[Path]:
-        """Return the path assigned to each drone, D1 first."""
+        """Return the path assigned to each drone"""
         paths = self.disjoint_paths()
         counts = self.distribute(paths, self._net.nb_drones)
         assignment: list[Path] = []
@@ -157,7 +153,7 @@ class PathFinder:
         return assignment
 
     def _rebuild(self, came_from: dict[str, str], end_name: str) -> Path:
-        """Walk the predecessor map backwards into a Path."""
+        """map backwards into a Path"""
         names = [end_name]
         while names[-1] in came_from:
             names.append(came_from[names[-1]])
