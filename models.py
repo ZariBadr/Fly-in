@@ -16,7 +16,7 @@ class ZoneType(Enum):
 
     @classmethod
     def from_string(cls, raw: str) -> "ZoneType":
-        """Return the member whose value is raw, or raise ValueError."""
+        """Return the member whose value is raw"""
         for member in cls:
             if member.value == raw:
                 return member
@@ -62,7 +62,7 @@ class Zone:
 
     @property
     def capacity(self) -> int:
-        """Occupancy limit; the start and end hubs are unlimited."""
+        """Occupancy limit, the start and end hubs are unlimited"""
         if self.is_start or self.is_end:
             return UNLIMITED
         return self._max_drones

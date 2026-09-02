@@ -1,5 +1,3 @@
-"""Command line entry point for the Fly-in drone routing simulation."""
-
 from __future__ import annotations
 
 import argparse
@@ -18,7 +16,7 @@ RESET = "\033[0m"
 BOLD = "\033[1m"
 DIM = "\033[2m"
 
-#: Color names accepted in the ``color=<value>`` metadata.
+# Color names
 NAMED_COLORS: dict[str, int] = {
     "black": 240, "gray": 244, "grey": 244, "silver": 250, "white": 255,
     "red": 196, "maroon": 124, "salmon": 209, "orange": 208, "gold": 220,
@@ -28,13 +26,13 @@ NAMED_COLORS: dict[str, int] = {
     "pink": 213,
 }
 
-#: Readable colors used for a color name that is not in the table.
+# Readable colors
 FALLBACK_COLORS: tuple[int, ...] = (
     39, 45, 51, 78, 84, 114, 120, 156, 178, 184,
     190, 202, 208, 214, 219, 141, 135, 105, 99, 75,
 )
 
-#: Color of a zone that declares no color, based on its type.
+# Color of a zone that declares no color
 TYPE_COLORS: dict[str, int] = {
     "normal": 252,
     "priority": 51,
@@ -42,7 +40,7 @@ TYPE_COLORS: dict[str, int] = {
     "blocked": 240,
 }
 
-#: Colors cycled through for the drones themselves.
+#Colors cycled for the drones
 DRONE_COLORS: tuple[int, ...] = (
     45, 214, 118, 201, 220, 51, 208, 141, 84, 213,
     39, 190, 171, 78, 203, 111, 156, 227, 99, 44,
@@ -60,25 +58,14 @@ class Palette:
     _TAG_RE = re.compile(r"(?P<key>\w+)=(?P<value>\S+)")
 
     def __init__(self, enabled: bool = True) -> None:
-        """Create an empty palette.
-
-        Args:
-            enabled: When ``False`` every method returns plain text.
+        """Create an empty palette
         """
         self.enabled = enabled
         self._zones: dict[str, str] = {}
 
     @classmethod
     def from_map(cls, path: str, enabled: bool) -> "Palette":
-        """Build a palette by reading the zones of a map file.
-
-        Args:
-            path: Path of the map file being simulated.
-            enabled: Whether colors should be emitted at all.
-
-        Returns:
-            A palette; an empty one if the file cannot be read again,
-            since colors must never break the simulation.
+        """Build a palette by reading the zones of a map file
         """
         palette = cls(enabled)
         if not enabled:
@@ -92,7 +79,7 @@ class Palette:
         return palette
 
     def _read_zone(self, line: str) -> None:
-        """Record the color of a single zone definition line."""
+        """Record the color of a single zone definition line"""
         match = self._ZONE_RE.match(line.split("#", 1)[0].strip())
         if match is None:
             return
@@ -123,9 +110,9 @@ class Palette:
         )
         return FALLBACK_COLORS[digest % len(FALLBACK_COLORS)]
 
-    # -- painting ------------------------------------------------------
+    # painting
     def zone(self, name: str) -> str:
-        """Paint a zone name with its own color."""
+        """Paint a zone name with its own color"""
         if not self.enabled:
             return name
         style = self._zones.get(name)
@@ -206,11 +193,7 @@ class Application:
         return parser
 
     def _wants_color(self) -> bool:
-        """Whether the output should be colorized.
-
-        Colors are dropped when the user asks for it, when ``NO_COLOR``
-        is set, and when the output is redirected, so a piped or saved
-        run stays perfectly plain.
+        """Whether the output should be colorized
         """
         if self._args.no_color or os.environ.get("NO_COLOR") is not None:
             return False
@@ -219,7 +202,7 @@ class Application:
         return sys.stdout.isatty()
 
     def run(self) -> int:
-        """Run the whole pipeline and return a process exit code."""
+        """Run the whole pipeline"""
         try:
             network = MapParser(self._args.map).parse()
             self._palette = Palette.from_map(
@@ -252,7 +235,7 @@ class Application:
         paths: list[Path],
         counts: list[int],
     ) -> None:
-        """Print the planned routes and the expected turn count."""
+        """Print the planned routes also the expected count"""
         for path, count in zip(paths, counts):
             route = " -> ".join(
                 self._palette.zone(name) for name in path.names
